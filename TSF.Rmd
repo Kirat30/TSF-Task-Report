@@ -1,0 +1,114 @@
+---
+title: "The Sparks Foundation Task Report"
+author: "Kirt Preet Singh"
+date: "7/18/2020"
+output: pdf_document
+---
+```{r, echo=FALSE}
+knitr::opts_chunk$set(fig.width=7, fig.height=5)
+```
+## Required Libraries
+```{r,message=FALSE}
+library(caret)
+library(rattle)
+```
+
+# Task 1
+
+## Question 1 (To Explore Supervised Machine Learning)
+In this regression task we will predict the percentage of marks that a student is expected to score based upon the number of hours they studied. This is a simple linear regression task as it involves just two variables. Data can be found at http://bit.ly/w-data
+What will be predicted score if a student study for 9.25 hrs in a day?
+
+## Loading and Exploring Data
+```{r}
+studied <- read.csv("tsk1.csv")
+head(studied)
+```
+
+### An Exploratory View
+We see an outlook of the data above, to observe the relationships between the two variables we would wanna take a look a pictorial reprentation of the data
+```{r}
+plot(x = studied$Hours,y = studied$Scores,main = "Scores Vs Hours Studied",xlab = "Hours Studied",ylab = "Exam Scores")
+```
+
+Now we can quite confidently say that more **number of hours studied** actually yields hightened **exam scores**, and hope our prediction also yields an output alligned with the approach.
+
+## Builing and exploring a Regression model
+```{r}
+modFit <- lm(Scores~Hours,data = studied)
+summary(modFit)
+```
+
+The R-squared value stands in favour of the model. Now we shall see how the regression line fits in our data.
+
+## Regression Analysis
+```{r}
+plot(x = studied$Hours,y = studied$Scores,main = "Scores Vs Hours Studied",xlab = "Hours Studied",ylab = "Exam Scores",col = "red")
+abline(modFit, col="blue")
+```
+
+Our Regression line fits perfectly alligned with our data points
+
+## Prediction
+Now we shall exploit the regression model, to yield a prediction of exam score for a student who studied 9.5 hours.
+```{r}
+nwdat <- data.frame(Hours = 9.5)
+predict(modFit,newdata = nwdat)
+```
+
+Our model yields a prediction of 95.1 exam score, a value we can settle with, considering the outlook of our data and the strong 95% fit of our regression model.
+
+# Task 2
+
+## Q3. (To Explore Decision Tree Algorithm )
+For the given ‘Iris’ dataset, create the Decision Tree classifier and visualize it graphically. The purpose is if we feed any new data to this classifier, it would be able to predict the right class accordingly.
+Dataset : https://drive.google.com/file/d/11Iq7YvbWZbt8VXjfm06brx66b10YiwK-/view?usp=sharing
+
+## Loading and Exploring the data 
+```{r}
+irisdata <- read.csv("iris.csv")
+head(irisdata)
+```
+
+We see that our data contains some unnecessary variables such as the indexing variable **id** , and the Species variable for which the a machin learning algorithm is to be build, contains *Iris-* before mentioning the actual species. 
+
+## Data Transformation
+```{r}
+irisdata <- irisdata[,-1]
+irisdata$Species <- gsub(pattern = "Iris-",replacement = "",x = irisdata$Species,useBytes = TRUE)
+head(irisdata)
+```
+
+Now this data form is desirable.
+
+## Building a Tree Model
+
+### Making Training and Testing Datasets
+```{r}
+set.seed(72020)
+inTrain <- createDataPartition(irisdata$Species,p = 0.7,list = FALSE)
+training <- irisdata[inTrain,]
+testing <- irisdata[-inTrain,]
+testing$Species <- as.factor(testing$Species)
+```
+
+Untill now training(70%) and testing(30%) data sets have been created, and the species in testing have been factorizwd for further comparisons.
+
+### Decision Tree Model
+
+We build our model across the training set.
+```{r}
+treeFit <- train(Species~.,data = training,method = "rpart")
+fancyRpartPlot(treeFit$finalModel)
+```
+
+Given above is our Decision Tree Model
+
+## Model Testing
+```{r}
+pr <- predict(treeFit,testing)
+cmat <- confusionMatrix(pr,testing$Species)
+cmat$overall[1]
+```
+
+Our Model was fed with a set of new values from the testing set and as it comes, has an accuracy of almost 98%, so with confidence we can say that if the model is applied across a new set of values, there is a 98% chance of obtaining a correct value.
